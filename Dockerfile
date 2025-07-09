@@ -1,23 +1,27 @@
 # Usamos alpine para imagen ligera
 FROM node:20-alpine
 
-# Instalamos herramientas necesarias para compilar dependencias nativas
-RUN apk add --no-cache build-base python3
-
 # Establecemos directorio de trabajo
 WORKDIR /app
 
-# Copiamos package.json y package-lock.json (o yarn.lock)
-COPY package*.json ./
+# Copiar solo los archivos de dependencias
+COPY package.json package-lock.json* ./
 
-# Instalamos dependencias
+# Instalar dependencias
 RUN npm install
 
-# Copiamos el resto del código
+# Copiar el resto del código de la aplicación
 COPY . .
 
-# Puerto que usará Vite o React (ajusta si usas otro puerto)
-EXPOSE 5173
+# Copiar y dar permisos al script de entrada
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-# Comando por defecto para desarrollo
-CMD ["npm", "run", "dev", "--", "--host"]
+# Puerto que usará Vite
+EXPOSE 3000
+
+# Definir el punto de entrada
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# Comando por defecto que se pasará al entrypoint
+CMD ["npm", "run", "dev"]
